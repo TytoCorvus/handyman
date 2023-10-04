@@ -54,7 +54,7 @@ jobs:
         --count 1 \
         --instance-type t2.micro \
         --key-name handyman-key \
-        --iam-instance-profile Arn=${{ secrets.AWS_HANDYMAN_ROLE_ARN }},Name=${{ vars.AWS_HANDYMAN_ROLE_NAME }} \
+        --iam-instance-profile Arn=${{ secrets.AWS_HANDYMAN_ROLE_ARN }} \
         --security-group-ids sg-0e6ffd8993b87d2fe \
         --subnet-id subnet-82ebb3fb \
         --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=handyman}]' \
