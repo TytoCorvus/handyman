@@ -28,7 +28,7 @@ jobs:
           --query 'Reservations[*].Instances[*].[InstanceId]' \
           --output text )"
           if [[ -z $instances ]]; then echo "No instances to destroy" && exit 0; else echo "Terminating instance"; fi
-          aws ec2 terminate-instances --instance-ids ${$instances/\n/","}
+          aws ec2 terminate-instances --instance-ids ${instances//$'\n'/,}
 
   deploy:
     name: Run new EC2 instance
