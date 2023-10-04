@@ -27,7 +27,7 @@ jobs:
           --filters Name=tag:Name,Values=handyman \
           --query 'Reservations[*].Instances[*].[InstanceId]' \
           --output text )"
-          if [[ -z $instance ]]; then echo "No instance to destroy" && exit 0; else echo "Terminating instance"; fi
+          if [[ -z $instances ]]; then echo "No instances to destroy" && exit 0; else echo "Terminating instance"; fi
           aws ec2 terminate-instances --instance-ids ${$instances/\n/","}
 
   deploy:
@@ -61,7 +61,7 @@ jobs:
         --query 'Instances[*].[InstanceId]' \
         --output text \
         --user-data handyman\deploy\user_data.sh)"
-        aws ec2 associate-address --instance-id $instance --allocation-id ${{ secrets.AWS_HANDYMAN_ELASTIC_IP }}
+        aws ec2 associate-address --instance-id $instance --allocation-id ${{ secrets.AWS_HANDYMAN_EIP }}
 
 
 
