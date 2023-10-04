@@ -49,7 +49,7 @@ jobs:
 
     - name: Create EC2 instance
       run: |
-        instance="aws ec2 run-instances \
+        instance="$(aws ec2 run-instances \
         --image-id ami-03f65b8614a860c29 \
         --count 1 \
         --instance-type t2.micro \
@@ -60,7 +60,7 @@ jobs:
         --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=handyman}]' \
         --query 'Instances[*].[InstanceId]' \
         --output text \
-        --user-data handyman\deploy\user_data.sh"
+        --user-data handyman\deploy\user_data.sh)"
         aws ec2 associate-address --instance-id $instance --allocation-id ${{ secrets.AWS_HANDYMAN_ELASTIC_IP }}
 
 
