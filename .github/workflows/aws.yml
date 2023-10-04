@@ -23,9 +23,9 @@ jobs:
 
       - name: Tear down old EC2 instance
         run: |
-          instance="$(aws ec2 describe-instances /
-          --filters Name=tag:Name,Values=handyman /
-          --query 'Reservations[*].Instances[*].[InstanceId]' /
+          instance="$(aws ec2 describe-instances \
+          --filters Name=tag:Name,Values=handyman \
+          --query 'Reservations[*].Instances[*].[InstanceId]' \
           --output text | head )"
           if [[ -z $instance ]]; then echo "No instance to destroy" && exit 0; else echo "Terminating instance"; fi
           aws ec2 terminate-instances --instance-ids $instance
@@ -50,19 +50,19 @@ jobs:
       env: 
         EIP: ${{ secrets.AWS_HANDYMAN_ELASTIC_IP }}
       run: |
-        aws ec2 run-instances /
-        --image-id ami-03f65b8614a860c29 /
-        --count 1 /
-        --instance-type t2.micro /
-        --key-name handyman-key /
-        --iam-instance-profile Arn=${{ secrets.AWS_HANDYMAN_ROLE_ARN }},Name=${{ vars.AWS_HANDYMAN_ROLE_NAME }} /
-        --network-interfaces AssociatePublicIpAddress=true,PublicIpAddress=${{ env.EIP }},SubnetId=subnet-82ebb3fb,Groups=[{GroupName=launch-wizard-5,GroupId=sg-0e6ffd8993b87d2fe}] /
-        --security-group-ids sg-0e6ffd8993b87d2fe /
-        --subnet-id subnet-82ebb3fb /
-        --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=handyman}]' /
-        --query 'Instances[*].[InstanceId]' /
-        --output text /
-        --user-data handyman/deploy/user_data.sh
+        aws ec2 run-instances \
+        --image-id ami-03f65b8614a860c29 \
+        --count 1 \
+        --instance-type t2.micro \
+        --key-name handyman-key \
+        --iam-instance-profile Arn=${{ secrets.AWS_HANDYMAN_ROLE_ARN }},Name=${{ vars.AWS_HANDYMAN_ROLE_NAME }} \
+        --network-interfaces AssociatePublicIpAddress=true,PublicIpAddress=${{ env.EIP }},SubnetId=subnet-82ebb3fb,Groups=[{GroupName=launch-wizard-5,GroupId=sg-0e6ffd8993b87d2fe}] \
+        --security-group-ids sg-0e6ffd8993b87d2fe \
+        --subnet-id subnet-82ebb3fb \
+        --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=handyman}]' \
+        --query 'Instances[*].[InstanceId]' \
+        --output text \
+        --user-data handyman\deploy\user_data.sh
 
 
 
