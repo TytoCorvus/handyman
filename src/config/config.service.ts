@@ -7,7 +7,7 @@ export class ConfigService {
     public config: IConfig;
 
     constructor() {
-        dotenv.config({path: 'src/config/configs/local.env'});
+        dotenv.config({path: 'configs/local.env'});
         this.config = {
             env: process.env.env as Environment,
             aws: {

@@ -24,71 +24,73 @@
 #    See the documentation for each action used below for the recommended IAM policies for this IAM user,
 #    and best practices on handling the access key credentials.
 
-name: Deploy to Amazon ECS
+name: Deploy to Amazon EC2
 
 on:
   push:
     branches: [ "master" ]
 
-env:
-  AWS_REGION: MY_AWS_REGION                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: MY_ECR_REPOSITORY           # set this to your Amazon ECR repository name
-  ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
-                                               # file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
-                                               # containerDefinitions section of your task definition
-
 permissions:
   contents: read
 
 jobs:
+  teardown: 
+    name: Tear down old EC2 instance
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps: 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Tear down old EC2 instance
+        run: |
+          instance="$(aws ec2 describe-instances /
+          --filters Name=tag:Name,Values=handyman /
+          --query 'Reservations[*].Instances[*].[InstanceId]' /
+          --output text | head )"
+          if [[ -z $instance ]]; then echo "No instance to destroy" && exit 0; else echo "Terminating instance"; fi
+          aws ec2 terminate-instances --instance-ids $instance
+
   deploy:
-    name: Deploy
+    name: Run new EC2 instance
     runs-on: ubuntu-latest
     environment: production
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+    - name: Create EC2 instance
+      env: 
+        EIP: ${{ secrets.AWS_HANDYMAN_ELASTIC_IP }}
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        aws ec2 run-instances /
+        --image-id ami-03f65b8614a860c29 /
+        --count 1 /
+        --instance-type t2.micro /
+        --key-name handyman-key /
+        --iam-instance-profile Arn=${{ secrets.AWS_HANDYMAN_ROLE_ARN }},Name=${{ vars.AWS_HANDYMAN_ROLE_NAME }} /
+        --network-interfaces AssociatePublicIpAddress=true,PublicIpAddress=${{ env.EIP }},SubnetId=subnet-82ebb3fb,Groups=[{GroupName=launch-wizard-5,GroupId=sg-0e6ffd8993b87d2fe}] /
+        --security-group-ids sg-0e6ffd8993b87d2fe /
+        --subnet-id subnet-82ebb3fb /
+        --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=handyman}]' /
+        --query 'Instances[*].[InstanceId]' /
+        --output text /
+        --user-data handyman/deploy/user_data.sh
 
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.image }}
 
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+
+        
+
