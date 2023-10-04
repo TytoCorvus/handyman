@@ -34,6 +34,7 @@ jobs:
     name: Run new EC2 instance
     runs-on: ubuntu-latest
     environment: production
+    needs: teardown
 
     steps:
     - name: Checkout
