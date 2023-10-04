@@ -23,12 +23,12 @@ jobs:
 
       - name: Tear down old EC2 instance
         run: |
-          instance="$(aws ec2 describe-instances \
+          instances="$(aws ec2 describe-instances \
           --filters Name=tag:Name,Values=handyman \
           --query 'Reservations[*].Instances[*].[InstanceId]' \
-          --output text | head )"
+          --output text )"
           if [[ -z $instance ]]; then echo "No instance to destroy" && exit 0; else echo "Terminating instance"; fi
-          aws ec2 terminate-instances --instance-ids $instance
+          aws ec2 terminate-instances --instance-ids ${$instances/\n/","}
 
   deploy:
     name: Run new EC2 instance
