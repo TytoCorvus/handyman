@@ -4,7 +4,6 @@ import { ConfigService } from './config/config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
   if(process.env.NODE_ENV === 'production') {
     app.enableCors({origin: new RegExp('.*\.brycecollins\.net')})
   }
