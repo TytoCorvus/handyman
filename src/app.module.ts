@@ -5,10 +5,11 @@ import { AwsModule } from './aws/aws.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ShutdownObserver } from './shutdownobserver';
 
 @Module({
-  imports: [ConfigModule, AwsModule],
+  imports: [ ConfigModule, AwsModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ShutdownObserver],
 })
 export class AppModule {}

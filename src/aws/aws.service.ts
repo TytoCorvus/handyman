@@ -3,7 +3,6 @@ import { ConfigService } from "src/config/config.service";
 import { SES, SendEmailCommand, SendEmailCommandInput } from "@aws-sdk/client-ses"
 import { IEmailParams } from "./email.model";
 
-
 @Injectable()
 export class AwsService {
 
