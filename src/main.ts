@@ -29,7 +29,7 @@ async function bootstrap() {
   await app.init();
 
   const httpServer = http.createServer(server).listen(3000);
-  const httpsServer = https.createServer(httpsOptions, server).listen(443);
+  const httpsServer = https.createServer(httpsOptions, server).listen(3001);
 
   const shutdownObserver = app.get(ShutdownObserver);
   shutdownObserver.addHttpServer(httpServer);

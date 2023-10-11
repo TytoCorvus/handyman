@@ -31,7 +31,7 @@ export class AwsService {
                     },
                     Body: {
                         Text: {
-                            Data: params.message,
+                            Data: `From: ${params.name} at ${params.from}\n${params.message}`,
                         },
                     },
                 },
