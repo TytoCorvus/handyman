@@ -5,6 +5,9 @@ export interface IConfig {
         secretAccessKey: string,
         region: string
     }
+    startgg: {
+        apiKey: string
+    }
 }
 
 export enum Environment {

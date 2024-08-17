@@ -16,4 +16,5 @@ export class AppController {
   async sendInquiryEmail(@Body() body: IEmailParams): Promise<string> {
     return await this.awsService.sendEmail(body);
   }
+
 }
